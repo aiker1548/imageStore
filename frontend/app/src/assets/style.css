@@ -1,0 +1,112 @@
+/* Основные стили */
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+    background-color: #f4f4f4;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+}
+
+h2 {
+    color: #333;
+    text-align: center;
+}
+
+/* Стили для форм */
+form {
+    max-width: 300px;
+    width: 100%;
+    background-color: #fff;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    margin: 20px auto;
+}
+
+input[type="text"],
+input[type="password"] {
+    width: 100%;
+    padding: 10px;
+    margin: 5px 0;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+}
+
+input[type="file"] {
+    display: none; /* Скрыть стандартное поле выбора файла */
+}
+
+.file-upload-label {
+    display: inline-block;
+    padding: 10px 20px;
+    background-color: #5cb85c;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    text-align: center;
+    cursor: pointer;
+    margin: 10px 0;
+}
+
+.file-upload-label:hover {
+    background-color: #4cae4c;
+}
+
+
+
+button {
+    width: 100%;
+    background-color: #5cb85c;
+    color: white;
+    border: none;
+    padding: 10px 15px;
+    border-radius: 5px;
+    cursor: pointer;
+    margin-top: 10px;
+}
+
+button:hover {
+    background-color: #4cae4c;
+}
+
+ .gallery-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 15px;
+    justify-items: center;
+    justify-content: space-between;
+    padding: 20px;
+} 
+  
+  .gallery-container-item {
+    display: flex;
+    flex-direction: column; /* Элементы внутри каждого элемента располагаются вертикально */
+    align-items: center; /* Центрируем содержимое по горизонтали */
+    max-width: calc(33% - 20px); /* Максимальная ширина элемента */
+    box-sizing: border-box; /* Учитываем отступы в ширине */
+  }
+  
+  .gallery-container-image {
+    max-width: 100%; /* Изображение не превышает ширину контейнера */
+    height: auto; /* Высота автоматически подстраивается по пропорциям изображения */
+    aspect-ratio: 16 / 9; /* Пропорция для всех изображений */
+  }
+
+.image-item {
+    text-align: center; /* Центрирование текста внутри элемента */
+}
+
+img {
+    width: 100%; /* Устанавливаем ширину изображения в 100% */
+    height: auto; /* Сохраняем пропорции изображения */
+    border-radius: 5px;
+    transition: transform 0.3s ease;
+}
+
+img:hover {
+    transform: scale(1.1); /* Увеличение изображения при наведении */
+    z-index: 1;
+}
