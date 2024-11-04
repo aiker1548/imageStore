@@ -10,23 +10,7 @@ COPY package*.json ./
 # Установите зависимости
 RUN npm install
 
+RUN npm install axios
+
 # Копируйте все файлы в рабочую директорию
 COPY . .
-
-# Соберите приложение
-RUN npm run build
-
-# Используйте Nginx для сервировки приложения
-FROM nginx:alpine
-
-# Копируйте собранное приложение из первого этапа в Nginx
-COPY --from=build /app/dist /usr/share/nginx/html
-
-# Копируйте конфигурацию Nginx (если требуется)
-# COPY nginx.conf /etc/nginx/conf.d/default.conf
-
-# Откройте порт 80 для Nginx
-EXPOSE 8080
-
-# Запустите Nginx
-CMD ["nginx", "-g", "daemon off;"]

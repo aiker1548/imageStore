@@ -7,6 +7,10 @@ import shutil
 from fastapi.responses import FileResponse
 import os
 from PIL import Image as PILImage
+from dotenv import load_dotenv
+import os
+
+load_dotenv()
 
 router = APIRouter()
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
@@ -69,13 +73,14 @@ async def get_images():
     try:
         # Запрашиваем все изображения из базы данных
         images = db.query(Image).all()
+        backend_url = os.getenv("BACKEND_URL")
         
         # Форматируем данные для возврата
         return [{
             "id": image.id,
             "filename": image.filename,
             "user_id": image.user_id,
-            "path": f"http://localhost:8000/download/{image.id}"  # Формируем путь для доступа к изображению
+            "path": f"http://{backend_url}/download/{image.id}"  # Формируем путь для доступа к изображению
         } for image in images]
     finally:
         db.close() 

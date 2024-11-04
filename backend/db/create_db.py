@@ -1,8 +1,12 @@
 from sqlalchemy import create_engine, MetaData
 from src.models import Base
-import time
+from dotenv import load_dotenv
+import os
 
-DATABASE_URL = "mysql+mysqlconnector://username:password@db/image_db"
+load_dotenv()
+
+
+DATABASE_URL = f"mysql+mysqlconnector://username:password@{os.getenv("DB_URL")}/image_db"
 
 engine = create_engine(DATABASE_URL)
 metadata = MetaData()

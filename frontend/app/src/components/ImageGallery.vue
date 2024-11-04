@@ -20,7 +20,7 @@
 </template>
 
 <script>
-import axios from 'axios';
+import apiClient from '../apiClient.js';
 import defaultPhoto from '../assets/defaultPhoto.jpg'; // Импорт изображения по умолчанию
 
 export default {
@@ -36,7 +36,7 @@ export default {
   methods: {
     async fetchImages() {
       try {
-        const response = await axios.get('http://localhost:8000/images/');
+        const response = await apiClient.get('/images/');
         this.images = response.data;
       } catch (error) {
         console.error(error);
@@ -57,7 +57,7 @@ export default {
     },
     async downloadImage(image_id) {
       try {
-        const response = await axios.get(`http://localhost:8000/download/${image_id}`, { responseType: 'blob' });
+        const response = await apiClient.get(`/download/${image_id}`, { responseType: 'blob' });
         const url = window.URL.createObjectURL(new Blob([response.data]));
         const link = document.createElement('a');
         link.href = url;
@@ -81,7 +81,7 @@ export default {
 
 
       try {
-        await axios.post('http://localhost:8000/upload/', formData, {
+        await apiClient.post('/upload/', formData, {
           headers: {
             'Content-Type': 'multipart/form-data',
           },

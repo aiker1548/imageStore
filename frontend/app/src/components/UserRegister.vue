@@ -11,7 +11,7 @@
 
 <script>
 import { store } from '../store/store.js';
-import axios from 'axios';
+import apiClient from '../apiClient.js';
 
 export default {
   data() {
@@ -23,7 +23,7 @@ export default {
   methods: {
     async registerUser() {
       try {
-        const response = await axios.post('http://localhost:8000/register/', {
+        const response = await apiClient.post('/register/', {
           username: this.username,
           password: this.password
         });
