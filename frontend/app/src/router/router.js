@@ -3,6 +3,7 @@ import ImageGallery from '../components/ImageGallery.vue';
 import UserLogin from '../components/UserLogin.vue';
 import UserRegister from '../components/UserRegister.vue';
 import { store } from '../store/store.js'; // Импортируйте store
+import ChatRoom from '../components/ChatRoom.vue';
 
 const routes = [
   { path: '/login', component: UserLogin },
@@ -11,7 +12,12 @@ const routes = [
     path: '/',
     component: ImageGallery,
     meta: { requiresAuth: true } // Защищённый маршрут
-  }
+  },
+  {
+    path: '/chat/:userId',
+    component: ChatRoom,
+    props: true,
+  },
 ];
 
 const router = createRouter({

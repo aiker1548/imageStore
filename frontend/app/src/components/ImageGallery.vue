@@ -1,7 +1,10 @@
 <template>
   <div>
     <h2>Галерея изображений</h2>
-    
+  <div class="top-bar">
+    <button @click="logout">Выйти</button>
+    <button @click="goToChats">Чаты</button>
+</div>
     <div class="gallery-container">
       <div v-for="image in images" :key="image.id" class="image-item">
         <img :src="getImagePath(image.path)" alt="Image" />
@@ -22,6 +25,7 @@
 <script>
 import apiClient from '../apiClient.js';
 import defaultPhoto from '../assets/defaultPhoto.jpg'; // Импорт изображения по умолчанию
+import { store } from '../store/store.js';
 
 export default {
   data() {
@@ -34,6 +38,16 @@ export default {
     this.fetchImages();
   },
   methods: {
+    logout() {
+      store.isAuthenticated = false;
+      store.userId = -1;
+      this.$router.push('/login');
+      console.log('Вы вышли из системы');
+    },
+    goToChats() {
+      this.$router.push('/chats');
+      console.log('Переход к чатам');
+    },
     async fetchImages() {
       try {
         const response = await apiClient.get('/images/');
