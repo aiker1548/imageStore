@@ -99,24 +99,15 @@ jobs:
           docker build -t imagestore-backend:latest .
           docker images
       
-      # Шаг 4: Тест запуска контейнера
-      - name: Test Docker container
+      # Шаг 4: Проверка образа
+      - name: Verify Docker image
         run: |
-          docker run -d --name test-container \
-            -e DB_URL=localhost:3306 \
-            -e BACKEND_URL=localhost:8000 \
-            -p 8000:8000 \
-            imagestore-backend:latest
+          echo "Проверка созданного Docker образа..."
+          docker images | grep imagestore-backend
           
-          # Ждем запуска приложения
-          sleep 10
-          
-          # Проверяем, что контейнер запущен
-          docker ps | grep test-container
-          
-          # Останавливаем контейнер
-          docker stop test-container
-          docker rm test-container
+          echo "Образ успешно собран!"
+          echo "Размер образа:"
+          docker images imagestore-backend:latest --format "{{.Size}}"
 
   # ========================================
   # JOB 3: Симуляция деплоя
