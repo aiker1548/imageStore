@@ -19,7 +19,7 @@ async def register_user(user_data: UserCreate):
             raise HTTPException(status_code=400, detail="Username already registered")
 
         # Создаем нового пользователя
-        user = User(username=user_data.username, password=user_data.password)  # Не забудьте хешировать пароль
+        user = User(username=user_data.username, password=user_data.password)
         db.add(user)
         db.commit()
         db.refresh(user)

@@ -13,7 +13,6 @@ engine = create_engine(DATABASE_URL)
 metadata = MetaData()
 
 def create_tables():
-    print(DATABASE_URL)
     Base.metadata.create_all(bind=engine)
 
 if __name__ == "__main__":
