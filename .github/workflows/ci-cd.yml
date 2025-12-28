@@ -1,0 +1,234 @@
+# ========================================
+# GitHub Actions CI/CD Pipeline
+# Автоматическая сборка и тестирование
+# ========================================
+
+name: CI/CD Pipeline
+
+# Триггеры: когда запускается workflow
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+  workflow_dispatch:  # Возможность запуска вручную
+
+# Переменные окружения
+env:
+  PYTHON_VERSION: '3.10'
+
+jobs:
+  # ========================================
+  # JOB 1: Сборка и тестирование на разных ОС
+  # ========================================
+  build-and-test:
+    name: Build and Test on ${{ matrix.os }}
+    
+    # Матричная стратегия - тестируем на 3 ОС
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+    
+    runs-on: ${{ matrix.os }}
+    
+    steps:
+      # Шаг 1: Клонирование репозитория
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      # Шаг 2: Установка Python
+      - name: Set up Python ${{ env.PYTHON_VERSION }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: 'pip'
+      
+      # Шаг 3: Установка зависимостей
+      - name: Install dependencies
+        working-directory: ./backend
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+      
+      # Шаг 4: Линтинг кода (проверка стиля)
+      - name: Lint with flake8
+        working-directory: ./backend
+        run: |
+          pip install flake8
+          flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
+          flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
+        continue-on-error: true
+      
+      # Шаг 5: Запуск unit-тестов
+      - name: Run unit tests
+        working-directory: ./backend
+        run: |
+          pytest tests/test_auth.py -v --cov=. --cov-report=term
+      
+      # Шаг 6: Загрузка coverage отчета (только для Ubuntu)
+      - name: Upload coverage reports
+        if: matrix.os == 'ubuntu-latest'
+        uses: codecov/codecov-action@v4
+        with:
+          file: ./backend/coverage.xml
+          flags: unittests
+        continue-on-error: true
+
+  # ========================================
+  # JOB 2: Сборка Docker образа
+  # ========================================
+  build-docker:
+    name: Build Docker Image
+    runs-on: ubuntu-latest
+    needs: build-and-test  # Зависит от успешного завершения тестов
+    
+    steps:
+      # Шаг 1: Клонирование репозитория
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      # Шаг 2: Настройка Docker Buildx
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+      
+      # Шаг 3: Сборка Docker образа
+      - name: Build Docker image
+        working-directory: ./backend
+        run: |
+          docker build -t imagestore-backend:latest .
+          docker images
+      
+      # Шаг 4: Тест запуска контейнера
+      - name: Test Docker container
+        run: |
+          docker run -d --name test-container \
+            -e DB_URL=localhost:3306 \
+            -e BACKEND_URL=localhost:8000 \
+            -p 8000:8000 \
+            imagestore-backend:latest
+          
+          # Ждем запуска приложения
+          sleep 10
+          
+          # Проверяем, что контейнер запущен
+          docker ps | grep test-container
+          
+          # Останавливаем контейнер
+          docker stop test-container
+          docker rm test-container
+
+  # ========================================
+  # JOB 3: Симуляция деплоя
+  # ========================================
+  deploy:
+    name: Deploy to Production (Simulated)
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    needs: build-docker  # Зависит от успешной сборки Docker
+    
+    steps:
+      # Шаг 1: Клонирование репозитория
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      # Шаг 2: Симуляция деплоя
+      - name: Simulate deployment
+        run: |
+          echo "=========================================="
+          echo "🚀 Деплой приложения начался..."
+          echo "=========================================="
+          echo "✓ Проверка окружения..."
+          echo "✓ Загрузка Docker образа..."
+          echo "✓ Остановка старой версии..."
+          echo "✓ Запуск новой версии..."
+          echo "✓ Проверка health check..."
+          echo "=========================================="
+          echo "✅ Деплой успешно завершен!"
+          echo "=========================================="
+          echo ""
+          echo "📊 Информация о деплое:"
+          echo "   - Коммит: ${{ github.sha }}"
+          echo "   - Ветка: ${{ github.ref }}"
+          echo "   - Автор: ${{ github.actor }}"
+          echo "   - Время: $(date)"
+      
+      # Шаг 3: Создание Release (опционально)
+      - name: Create deployment marker
+        run: |
+          echo "Deployment completed at $(date)" > deployment.txt
+          echo "Commit: ${{ github.sha }}" >> deployment.txt
+      
+      # Шаг 4: Загрузка артефакта деплоя
+      - name: Upload deployment artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: deployment-info
+          path: deployment.txt
+
+  # ========================================
+  # JOB 4: Уведомление о результатах
+  # ========================================
+  notify:
+    name: Send Notification
+    runs-on: ubuntu-latest
+    if: always()
+    needs: [build-and-test, build-docker, deploy]
+    
+    steps:
+      - name: Check workflow status
+        run: |
+          echo "=========================================="
+          echo "📊 Результаты CI/CD Pipeline"
+          echo "=========================================="
+          echo "Build and Test: ${{ needs.build-and-test.result }}"
+          echo "Build Docker: ${{ needs.build-docker.result }}"
+          echo "Deploy: ${{ needs.deploy.result }}"
+          echo "=========================================="
+          
+          # Определяем общий статус
+          if [ "${{ needs.build-and-test.result }}" == "success" ] && \
+             [ "${{ needs.build-docker.result }}" == "success" ]; then
+            echo "✅ CI/CD Pipeline выполнен успешно!"
+            exit 0
+          else
+            echo "❌ CI/CD Pipeline завершился с ошибками"
+            exit 1
+          fi
+
+# ========================================
+# ОПИСАНИЕ ДЖОБОВ:
+#
+# 1. build-and-test:
+#    - Запускается на: Linux, Windows, MacOS
+#    - Устанавливает зависимости
+#    - Проверяет код линтером (flake8)
+#    - Запускает юнит-тесты с покрытием
+#    - GitHub Actions: checkout@v4, setup-python@v5, codecov@v4
+#
+# 2. build-docker:
+#    - Запускается только после успешных тестов
+#    - Собирает Docker образ
+#    - Тестирует запуск контейнера
+#    - GitHub Actions: checkout@v4, setup-buildx-action@v3
+#
+# 3. deploy:
+#    - Запускается только при push в main
+#    - Зависит от успешной сборки Docker
+#    - СИМУЛИРУЕТ деплой (не требует сервера)
+#    - Создает артефакт с информацией о деплое
+#    - GitHub Actions: checkout@v4, upload-artifact@v4
+#
+# 4. notify:
+#    - Запускается всегда (даже при ошибках)
+#    - Выводит результаты всех джобов
+#    - Определяет общий статус пайплайна
+#
+# ТРИГГЕРЫ:
+# - push в ветки main/master
+# - pull_request в ветки main/master
+# - workflow_dispatch (ручной запуск)
+#
+# ЗАВИСИМОСТИ МЕЖДУ ДЖОБАМИ:
+# build-and-test → build-docker → deploy → notify
+# ========================================
